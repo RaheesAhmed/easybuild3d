@@ -19,34 +19,52 @@ import {
   FiSquare as FiFace,
   FiLayout,
   FiMaximize,
+  FiBookmark,
+  FiCamera,
+  FiTarget,
 } from "react-icons/fi";
 import Viewport3D from "./Viewport3D";
+import {
+  SelectionMode,
+  EditMode,
+  ShapeType,
+  ViewType,
+  ViewLayout,
+  CameraPreset,
+  ViewBookmark,
+} from "./types";
 
 interface ViewportContainerProps {
   isSidebarOpen: boolean;
 }
 
-type SelectionMode = "vertex" | "edge" | "face" | "object";
-type EditMode =
-  | "select"
-  | "cursor"
-  | "move"
-  | "rotate"
-  | "scale"
-  | "transform"
-  | "annotate"
-  | "measure"
-  | "addCube"
-  | "extrude"
-  | "inset"
-  | "bevel"
-  | "loopCut"
-  | "knife"
-  | "polyBuild";
-
-type ShapeType = "cube" | "sphere" | "cylinder" | "plane" | "torus";
-type ViewType = "perspective" | "top" | "front" | "right";
-type ViewLayout = "single" | "quad";
+const CAMERA_PRESETS: Record<ViewType, CameraPreset> = {
+  front: {
+    position: [0, 0, 5],
+    target: [0, 0, 0],
+    up: [0, 1, 0],
+  },
+  top: {
+    position: [0, 5, 0],
+    target: [0, 0, 0],
+    up: [0, 0, -1],
+  },
+  right: {
+    position: [5, 0, 0],
+    target: [0, 0, 0],
+    up: [0, 1, 0],
+  },
+  perspective: {
+    position: [5, 5, 5],
+    target: [0, 0, 0],
+    up: [0, 1, 0],
+  },
+  isometric: {
+    position: [3.5, 3.5, 3.5],
+    target: [0, 0, 0],
+    up: [0, 1, 0],
+  },
+};
 
 const ViewportContainer = ({ isSidebarOpen }: ViewportContainerProps) => {
   const [activeView, setActiveView] = useState<ViewType>("perspective");
@@ -57,6 +75,9 @@ const ViewportContainer = ({ isSidebarOpen }: ViewportContainerProps) => {
   const [shapes, setShapes] = useState<
     Array<{ type: ShapeType; id: string; position: [number, number, number] }>
   >([]);
+  const [viewBookmarks, setViewBookmarks] = useState<ViewBookmark[]>([]);
+  const [showOrbitIndicator, setShowOrbitIndicator] = useState(true);
+  const [isTransitioning, setIsTransitioning] = useState(false);
 
   const handleAddShape = (type: ShapeType) => {
     const newShape = {
@@ -65,6 +86,30 @@ const ViewportContainer = ({ isSidebarOpen }: ViewportContainerProps) => {
       position: [0, type === "plane" ? 0 : 0.5, 0] as [number, number, number],
     };
     setShapes([...shapes, newShape]);
+  };
+
+  const handleCameraPreset = (preset: ViewType) => {
+    setIsTransitioning(true);
+    setActiveView(preset);
+    // The transition animation will be handled in the Viewport3D component
+    setTimeout(() => setIsTransitioning(false), 1000);
+  };
+
+  const handleAddBookmark = () => {
+    const newBookmark: ViewBookmark = {
+      id: Math.random().toString(36).substr(2, 9),
+      name: `View ${viewBookmarks.length + 1}`,
+      cameraPosition: CAMERA_PRESETS[activeView].position,
+      cameraTarget: CAMERA_PRESETS[activeView].target,
+      cameraUp: CAMERA_PRESETS[activeView].up,
+    };
+    setViewBookmarks([...viewBookmarks, newBookmark]);
+  };
+
+  const handleLoadBookmark = (bookmark: ViewBookmark) => {
+    setIsTransitioning(true);
+    // The camera transition will be handled in the Viewport3D component
+    setTimeout(() => setIsTransitioning(false), 1000);
   };
 
   const toggleViewLayout = () => {
@@ -89,6 +134,9 @@ const ViewportContainer = ({ isSidebarOpen }: ViewportContainerProps) => {
         shapes={shapes}
         onShapeRemove={(id) => setShapes(shapes.filter((s) => s.id !== id))}
         selectionMode={selectionMode}
+        cameraPreset={CAMERA_PRESETS[view]}
+        isTransitioning={isTransitioning}
+        showOrbitIndicator={showOrbitIndicator}
       />
       <div className="absolute top-2 right-2 flex space-x-2">
         <button
@@ -109,16 +157,45 @@ const ViewportContainer = ({ isSidebarOpen }: ViewportContainerProps) => {
     <div className="flex h-full">
       {/* Left Toolbar */}
       <div className="w-12 bg-gray-800 border-r border-gray-700 flex flex-col items-center py-2 space-y-2">
-        {/* View Layout Toggle */}
-        <button
-          className={`p-2 rounded-lg transition-colors ${
-            viewLayout === "quad" ? "bg-blue-500" : "hover:bg-gray-700"
-          }`}
-          onClick={toggleViewLayout}
-          title="Toggle Quad View"
-        >
-          <FiLayout className="w-5 h-5" />
-        </button>
+        {/* Camera Presets */}
+        <div className="flex flex-col space-y-1 p-1 bg-gray-700 rounded-lg">
+          <button
+            className={`p-1.5 rounded transition-colors ${
+              activeView === "front" ? "bg-blue-500" : "hover:bg-gray-600"
+            }`}
+            onClick={() => handleCameraPreset("front")}
+            title="Front View (Numpad 1)"
+          >
+            <FiCamera className="w-4 h-4" />
+          </button>
+          <button
+            className={`p-1.5 rounded transition-colors ${
+              activeView === "top" ? "bg-blue-500" : "hover:bg-gray-600"
+            }`}
+            onClick={() => handleCameraPreset("top")}
+            title="Top View (Numpad 7)"
+          >
+            <FiCamera className="w-4 h-4 rotate-90" />
+          </button>
+          <button
+            className={`p-1.5 rounded transition-colors ${
+              activeView === "right" ? "bg-blue-500" : "hover:bg-gray-600"
+            }`}
+            onClick={() => handleCameraPreset("right")}
+            title="Right View (Numpad 3)"
+          >
+            <FiCamera className="w-4 h-4 -rotate-90" />
+          </button>
+          <button
+            className={`p-1.5 rounded transition-colors ${
+              activeView === "isometric" ? "bg-blue-500" : "hover:bg-gray-600"
+            }`}
+            onClick={() => handleCameraPreset("isometric")}
+            title="Isometric View (Numpad 5)"
+          >
+            <FiCamera className="w-4 h-4 rotate-45" />
+          </button>
+        </div>
 
         {/* Selection Mode Tools */}
         <div className="flex flex-col space-y-1 p-1 bg-gray-700 rounded-lg">
@@ -295,12 +372,58 @@ const ViewportContainer = ({ isSidebarOpen }: ViewportContainerProps) => {
         >
           <FiLayers className="w-5 h-5" />
         </button>
+
+        {/* Orbit Indicator Toggle */}
+        <button
+          className={`p-2 rounded-lg transition-colors ${
+            showOrbitIndicator ? "bg-blue-500" : "hover:bg-gray-700"
+          }`}
+          onClick={() => setShowOrbitIndicator(!showOrbitIndicator)}
+          title="Toggle Orbit Point"
+        >
+          <FiTarget className="w-5 h-5" />
+        </button>
+
+        {/* View Bookmarks */}
+        <button
+          className="p-2 rounded-lg hover:bg-gray-700 transition-colors"
+          onClick={handleAddBookmark}
+          title="Add View Bookmark"
+        >
+          <FiBookmark className="w-5 h-5" />
+        </button>
       </div>
 
       {/* Main Content */}
       <div className="flex-1 relative">
         {viewLayout === "single" ? (
-          renderViewport(maximizedView || activeView, !!maximizedView)
+          <div className="relative h-full">
+            <Viewport3D
+              mode={activeMode}
+              view={maximizedView || activeView}
+              shapes={shapes}
+              onShapeRemove={(id) =>
+                setShapes(shapes.filter((s) => s.id !== id))
+              }
+              selectionMode={selectionMode}
+              cameraPreset={CAMERA_PRESETS[maximizedView || activeView]}
+              isTransitioning={isTransitioning}
+              showOrbitIndicator={showOrbitIndicator}
+            />
+            {/* View Bookmarks Panel */}
+            <div className="absolute top-4 right-4 bg-gray-800 rounded-lg p-2 space-y-2">
+              {viewBookmarks.map((bookmark) => (
+                <button
+                  key={bookmark.id}
+                  className="flex items-center space-x-2 text-sm px-3 py-1.5 hover:bg-gray-700 rounded w-full"
+                  onClick={() => handleLoadBookmark(bookmark)}
+                >
+                  <FiBookmark className="w-4 h-4" />
+                  <span>{bookmark.name}</span>
+                </button>
+              ))}
+            </div>
+          </div>
         ) : (
           <div className="grid grid-cols-2 grid-rows-2 gap-1 h-full">
             {renderViewport("perspective")}

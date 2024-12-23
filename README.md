@@ -37,7 +37,7 @@ A web-based 3D construction design tool inspired by Blender but simplified for r
 1. Clone the repository:
 
    ```bash
-   git clone https://github.com/yourusername/easybuild3d.git
+   git clone https://github.com/RaheesAhmed/easybuild3d.git
    cd easybuild3d
    ```
 
