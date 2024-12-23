@@ -1,98 +1,117 @@
 # EasyBuild3D
 
-A professional web-based 3D construction design tool inspired by Blender but simplified for renovation professionals. Built with React, Three.js, and modern web technologies.
+A web-based 3D construction design tool inspired by Blender but simplified for renovation professionals. Built with React, Three.js, and TypeScript.
 
 ## Features
 
-- Professional-grade 3D viewport with multiple view modes
-- Intuitive tools for construction design
-- Real-time rendering with shadows and lighting
-- Material system for realistic visualization
-- Responsive and modern UI
-- Built-in measurement tools
-- Quick-access construction elements
+- **Multi-viewport System**
+
+  - Quad-view layout (Top, Front, Side, Perspective)
+  - Synchronized camera positions
+  - Viewport maximization
+  - Orthographic and perspective views
+
+- **Essential Tools**
+
+  - Selection tools (Vertex, Edge, Face, Object)
+  - Transform tools (Move, Rotate, Scale)
+  - Basic shapes (Cube, Sphere, Cylinder, Plane, Torus)
+  - Grid system with measurements
+  - Real-time shadows and lighting
+
+- **Construction-Specific Features**
+  - Quick-add construction elements
+  - Smart tools for room generation
+  - Material system
+  - Cost calculation
 
 ## Getting Started
 
 ### Prerequisites
 
-- Node.js 16.x or higher
-- npm 7.x or higher
+- Node.js (v18 or higher)
+- npm or yarn
 
 ### Installation
 
 1. Clone the repository:
 
-```bash
-git clone https://github.com/yourusername/easybuild3d.git
-cd easybuild3d
-```
+   ```bash
+   git clone https://github.com/yourusername/easybuild3d.git
+   cd easybuild3d
+   ```
 
 2. Install dependencies:
 
-```bash
-npm install
-```
+   ```bash
+   npm install
+   # or
+   yarn install
+   ```
 
 3. Start the development server:
 
-```bash
-npm start
-```
+   ```bash
+   npm run dev
+   # or
+   yarn dev
+   ```
 
-The application will be available at `http://localhost:3000`
+4. Open your browser and navigate to `http://localhost:5173`
 
-## Controls
+## Keyboard Shortcuts
 
-- Left Click: Select objects
-- Right Click: Context menu
-- Middle Mouse: Orbit camera
-- Shift + Middle Mouse: Pan camera
-- Mouse Wheel: Zoom
-- G: Move selected object
-- R: Rotate selected object
-- S: Scale selected object
-- X/Y/Z: Constrain to axis
+- **Selection Mode**
 
-## Technologies Used
+  - `1` - Vertex Select
+  - `2` - Edge Select
+  - `3` - Face Select
+  - `4` - Object Select
 
-- React 18
+- **Transform Tools**
+
+  - `G` - Move
+  - `R` - Rotate
+  - `S` - Scale
+  - `B` - Box Select
+
+- **Mesh Editing**
+
+  - `E` - Extrude
+  - `I` - Inset Faces
+  - `K` - Knife Tool
+
+- **View Controls**
+  - Middle Mouse - Orbit
+  - Shift + Middle Mouse - Pan
+  - Mouse Wheel - Zoom
+  - Delete - Delete selected object
+
+## Tech Stack
+
+- React
 - Three.js
 - React Three Fiber
 - React Three Drei
 - TypeScript
 - Tailwind CSS
-- React Icons
-
-## Project Structure
-
-```
-src/
-  ├── components/
-  │   ├── viewport/     # 3D viewport components
-  │   ├── ui/           # UI components
-  │   ├── controls/     # Control components
-  │   ├── objects/      # 3D object components
-  │   └── panels/       # Side panel components
-  ├── hooks/            # Custom React hooks
-  ├── utils/            # Utility functions
-  └── types/            # TypeScript type definitions
-```
+- Zustand
+- Vite
 
 ## Contributing
 
 1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
+2. Create your feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add some amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
 5. Open a Pull Request
 
 ## License
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ## Acknowledgments
 
-- Inspired by Blender's user interface
-- Built with modern web technologies
-- Designed for construction professionals
+- Inspired by Blender's interface and functionality
+- Built with React Three Fiber ecosystem
+- Styled with Tailwind CSS

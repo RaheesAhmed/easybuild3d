@@ -6,14 +6,9 @@ import {
   FiGrid,
   FiBox,
   FiLayers,
-  FiImage,
-  FiSquare,
-  FiCircle,
-  FiPlus,
   FiScissors,
   FiTool,
   FiCopy,
-  FiTarget,
   FiEdit2,
   FiMinimize2,
   FiSlash,
@@ -22,6 +17,8 @@ import {
   FiCircle as FiVertex,
   FiMinus,
   FiSquare as FiFace,
+  FiLayout,
+  FiMaximize,
 } from "react-icons/fi";
 import Viewport3D from "./Viewport3D";
 
@@ -48,11 +45,13 @@ type EditMode =
   | "polyBuild";
 
 type ShapeType = "cube" | "sphere" | "cylinder" | "plane" | "torus";
+type ViewType = "perspective" | "top" | "front" | "right";
+type ViewLayout = "single" | "quad";
 
 const ViewportContainer = ({ isSidebarOpen }: ViewportContainerProps) => {
-  const [activeView, setActiveView] = useState<
-    "perspective" | "top" | "front" | "right"
-  >("perspective");
+  const [activeView, setActiveView] = useState<ViewType>("perspective");
+  const [viewLayout, setViewLayout] = useState<ViewLayout>("single");
+  const [maximizedView, setMaximizedView] = useState<ViewType | null>(null);
   const [activeMode, setActiveMode] = useState<EditMode>("select");
   const [selectionMode, setSelectionMode] = useState<SelectionMode>("object");
   const [shapes, setShapes] = useState<
@@ -68,10 +67,59 @@ const ViewportContainer = ({ isSidebarOpen }: ViewportContainerProps) => {
     setShapes([...shapes, newShape]);
   };
 
+  const toggleViewLayout = () => {
+    setViewLayout(viewLayout === "single" ? "quad" : "single");
+    setMaximizedView(null);
+  };
+
+  const handleMaximizeView = (view: ViewType) => {
+    if (maximizedView === view) {
+      setMaximizedView(null);
+    } else {
+      setMaximizedView(view);
+      setViewLayout("single");
+    }
+  };
+
+  const renderViewport = (view: ViewType, isMaximized: boolean = false) => (
+    <div className="relative h-full w-full">
+      <Viewport3D
+        mode={activeMode}
+        view={view}
+        shapes={shapes}
+        onShapeRemove={(id) => setShapes(shapes.filter((s) => s.id !== id))}
+        selectionMode={selectionMode}
+      />
+      <div className="absolute top-2 right-2 flex space-x-2">
+        <button
+          className="p-1.5 bg-gray-800 rounded hover:bg-gray-700 transition-colors"
+          onClick={() => handleMaximizeView(view)}
+          title={isMaximized ? "Restore" : "Maximize"}
+        >
+          <FiMaximize className="w-4 h-4" />
+        </button>
+        <div className="px-2 py-1 bg-gray-800 rounded text-sm font-medium">
+          {view.charAt(0).toUpperCase() + view.slice(1)}
+        </div>
+      </div>
+    </div>
+  );
+
   return (
     <div className="flex h-full">
       {/* Left Toolbar */}
       <div className="w-12 bg-gray-800 border-r border-gray-700 flex flex-col items-center py-2 space-y-2">
+        {/* View Layout Toggle */}
+        <button
+          className={`p-2 rounded-lg transition-colors ${
+            viewLayout === "quad" ? "bg-blue-500" : "hover:bg-gray-700"
+          }`}
+          onClick={toggleViewLayout}
+          title="Toggle Quad View"
+        >
+          <FiLayout className="w-5 h-5" />
+        </button>
+
         {/* Selection Mode Tools */}
         <div className="flex flex-col space-y-1 p-1 bg-gray-700 rounded-lg">
           <button
@@ -249,66 +297,18 @@ const ViewportContainer = ({ isSidebarOpen }: ViewportContainerProps) => {
         </button>
       </div>
 
-      {/* Main Viewport */}
+      {/* Main Content */}
       <div className="flex-1 relative">
-        <Viewport3D
-          mode={activeMode}
-          view={activeView}
-          selectionMode={selectionMode}
-          shapes={shapes}
-          onShapeRemove={(id) => setShapes(shapes.filter((s) => s.id !== id))}
-        />
-
-        {/* View Controls */}
-        <div className="absolute top-4 right-4 bg-gray-800 rounded-lg p-1 flex space-x-1">
-          <button
-            className={`px-3 py-1.5 rounded transition-colors ${
-              activeView === "perspective" ? "bg-blue-500" : "hover:bg-gray-700"
-            }`}
-            onClick={() => setActiveView("perspective")}
-          >
-            Persp
-          </button>
-          <button
-            className={`px-3 py-1.5 rounded transition-colors ${
-              activeView === "top" ? "bg-blue-500" : "hover:bg-gray-700"
-            }`}
-            onClick={() => setActiveView("top")}
-          >
-            Top
-          </button>
-          <button
-            className={`px-3 py-1.5 rounded transition-colors ${
-              activeView === "front" ? "bg-blue-500" : "hover:bg-gray-700"
-            }`}
-            onClick={() => setActiveView("front")}
-          >
-            Front
-          </button>
-          <button
-            className={`px-3 py-1.5 rounded transition-colors ${
-              activeView === "right" ? "bg-blue-500" : "hover:bg-gray-700"
-            }`}
-            onClick={() => setActiveView("right")}
-          >
-            Right
-          </button>
-        </div>
-
-        {/* Keyboard Shortcuts Overlay */}
-        <div className="absolute bottom-4 left-4 bg-gray-800 bg-opacity-90 rounded-lg p-2 text-xs text-gray-400">
-          <div>1 - Vertex Select</div>
-          <div>2 - Edge Select</div>
-          <div>3 - Face Select</div>
-          <div>4 - Object Select</div>
-          <div>B - Box Select</div>
-          <div>G - Move</div>
-          <div>R - Rotate</div>
-          <div>S - Scale</div>
-          <div>E - Extrude Region</div>
-          <div>I - Inset Faces</div>
-          <div>K - Knife Tool</div>
-        </div>
+        {viewLayout === "single" ? (
+          renderViewport(maximizedView || activeView, !!maximizedView)
+        ) : (
+          <div className="grid grid-cols-2 grid-rows-2 gap-1 h-full">
+            {renderViewport("perspective")}
+            {renderViewport("top")}
+            {renderViewport("front")}
+            {renderViewport("right")}
+          </div>
+        )}
       </div>
 
       {/* Right Sidebar */}
@@ -358,10 +358,10 @@ const ViewportContainer = ({ isSidebarOpen }: ViewportContainerProps) => {
                   Materials
                 </h3>
                 <div className="grid grid-cols-4 gap-2">
-                  <div className="w-12 h-12 bg-red-500 rounded cursor-pointer"></div>
-                  <div className="w-12 h-12 bg-blue-500 rounded cursor-pointer"></div>
-                  <div className="w-12 h-12 bg-green-500 rounded cursor-pointer"></div>
-                  <div className="w-12 h-12 bg-yellow-500 rounded cursor-pointer"></div>
+                  <div className="w-12 h-12 bg-red-500 rounded cursor-pointer" />
+                  <div className="w-12 h-12 bg-blue-500 rounded cursor-pointer" />
+                  <div className="w-12 h-12 bg-green-500 rounded cursor-pointer" />
+                  <div className="w-12 h-12 bg-yellow-500 rounded cursor-pointer" />
                 </div>
               </div>
             </div>
